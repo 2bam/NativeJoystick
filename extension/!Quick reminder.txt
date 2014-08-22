@@ -1,0 +1,2 @@
+Open SetupANE.bat, configure all the options
+Open unzip.bat and customize your own unzipping command line tool (default is 7-Zip at "C:\Program Files\7-Zip")

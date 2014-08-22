@@ -1,0 +1,13 @@
+<extension xmlns="http://ns.adobe.com/air/extension/4.0"> 
+	<id>com.iam2bam.ane.nativejoystick</id>  
+	<versionNumber>1.0.0</versionNumber> 
+	<platforms> 
+		<platform name="Windows-x86"> 
+			<applicationDeployment> 
+				<nativeLibrary>NativeJoystickDLL.dll</nativeLibrary> 
+				<initializer>NativeJoystickExtensionInitializer</initializer> 
+				<finalizer>NativeJoystickExtensionFinalizer</finalizer> 
+			</applicationDeployment> 
+		</platform> 
+	</platforms> 
+</extension> 

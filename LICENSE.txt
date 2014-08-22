@@ -1,0 +1,10 @@
+NativeJoystick extension for Adobe(R) AIR(R) to support Joysticks under Windows(R)
+Copyright (C) 2014 Martin Sebastian Wain. All Rights Reserved.
+http://2bam.com
+
+All source code is licensed under the Mozilla Public License v2.0 (see LICENSE.MPL.txt or http://mozilla.org/MPL/2.0/)
+with the exception of files JoyOEMInfo.cpp and JoyOEMInfo.h which are licensed under the MIT license
+(included inside those files) which uses code from FreeGlut by John F. Fay.
+
+All graphics (svg an png) copyright are is dedicated to the Public Domain.
+http://creativecommons.org/publicdomain/zero/1.0/

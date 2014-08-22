@@ -1,0 +1,13 @@
+IGNORE
+/air
+/bin
+/obj
+/tutorial
+/extension/tmp
+/extension/lib
+/extension/native/win32/NativeJoystickDLL.sdf
+/extension/native/win32/NativeJoystickDLL.v12.suo
+/extension/native/win32/NativeJoystickDLL.vcxproj.user
+/extension/native/win32/Debug
+/extension/native/win32/Release
+/bat/NativeJoystickDemo.p12
