@@ -51,7 +51,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 		private var _pollInterval:Number;
 		private var _traceLevel:uint;
 		private var _tmrPoll:Timer;
-		private var _tmrReload:Timer;
+		//private var _tmrReload:Timer;
 		
 		private var _data:Vector.<NativeJoystickData>;
 		
@@ -301,7 +301,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 		 * This get's called automatically if pollInterval != 0.
 		 */
 		public function updateJoysticks():void {
-			_ectx.call("updateJoysticks", _data);
+			_ectx.call("updateJoysticks", _data as Object);		//is a String created here? or inside the call? "as Object" changes that?
 		}
 
 		/**
@@ -335,7 +335,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 			if(_mgr) {
 				_mgr._ectx.dispose();
 				_mgr._tmrPoll.stop();
-				_mgr._tmrReload.stop();
+				//_mgr._tmrReload.stop();
 				_mgr = null;
 			}
 		}

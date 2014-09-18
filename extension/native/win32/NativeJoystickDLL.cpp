@@ -32,21 +32,78 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #define TRACE_VERBOSE		2		//Show detailed errors
 #define TRACE_DIAGNOSE		3		//Show every native call, result of every function and changes in device states
 
+
+
 #define FRE_CHECK(x)		FRECheck(ctx, x, #x, __LINE__, __FILE__ "/" __FUNCTION__)
 #define MM_CHECK(x)			MMCheck(ctx, x, #x, __LINE__, __FILE__ "/" __FUNCTION__)
 #define TRACE(fmt, ...)		printf("[NJOY-DLL] " fmt "\n", __VA_ARGS__)		
 
+#define PROFILE(LINE)										//					\
+	//if(subline) {																\
+	//	__int64 delta = 1000000*(counterGet()-substart)/_counterFreq;			\
+	//	printf("%30s took %I64d:%I64d ms\n", subline, delta/1000, delta%1000);	\
+	//}																			\
+	//substart = counterGet(); subline=LINE;
 /*
 Having a user context object is technically unnecessary in this case, although more tidy,
 	as there is no need for per-context initialization/termination.
 But I thought it was better as an example of how to keep info for each ExtensionContext (native side)
 */
+struct NJoyState {
+	bool hasCaps;
+	JOYCAPS caps;
+	NJoyState() : hasCaps(false) { }
+};
+
 struct NJoyContext {
 	int traceLevel;
 	int lastJoyIndex;				//For error tracing
 	FRENamedFunction* funcList;
 	UINT maxDevs;
-	NJoyContext() : traceLevel(TRACE_NORMAL), lastJoyIndex(-1) { }
+	UINT frames;
+	NJoyState *states;
+	NJoyContext() : traceLevel(TRACE_NORMAL), lastJoyIndex(-1), maxDevs(0), frames(0), states(NULL) { }
+};
+
+
+
+
+
+__int64 _counterStart = 0;
+__int64 _counterFreq = 1;
+__int64 _counterTotal = 0;
+int _calls = 0;
+
+void counterStart()
+{
+    LARGE_INTEGER li;
+    if(!QueryPerformanceFrequency(&li)) {
+		printf("QueryPerformanceFrequency failed!\n");
+		return;
+	}
+
+    _counterFreq = li.QuadPart;
+
+    QueryPerformanceCounter(&li);
+    _counterStart = li.QuadPart;
+}
+
+__int64 counterGet()
+{
+    LARGE_INTEGER li;
+    QueryPerformanceCounter(&li);
+    return (li.QuadPart-_counterStart);
+}
+
+class AutoPerfo {
+	__int64 start;
+	const char *line;
+public:
+	AutoPerfo(const char *Line) { line=Line; start = counterGet(); }
+	~AutoPerfo() {
+		__int64 delta = 1000000*(counterGet()-start)/_counterFreq;
+		printf("%30s took %I64d:%I64d ms\n", line, delta/1000, delta%1000);
+	}
 };
 
 //Multimedia check func that logs errors
@@ -178,34 +235,79 @@ static FREObject getCapabilities(FREContext ctx, void *functionData, uint32_t ar
 static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t argc, FREObject argv[]) {
 	FREUserContext<NJoyContext> uctx(ctx);
 
+	//__int64 start = counterGet();
+	//__int64 substart;
+	//const char *subline = NULL;
+
 	assert(argc == 1);
 
 	FREObject joysticks = argv[0];
-	uint32_t count;
+	//uint32_t count;
 
-	if(FRE_CHECK(FREGetArrayLength(joysticks, &count)) != FRE_OK) return NULL;
-
-	JOYCAPS caps;
+	//PROFILE("FREGetArrayLength");
+	//if(FRE_CHECK(FREGetArrayLength(joysticks, &count)) != FRE_OK) return NULL;	//This takes like 500us and is unlikely to be != uctx->maxDevs
+	//PROFILE(NULL);
 	JOYINFOEX info;
 	info.dwSize = sizeof(JOYINFOEX);
 	//TODO: reallyRaw
 	info.dwFlags = JOY_RETURNALL;
 
+	//
+	//NOTE: Apparently, when connecting an Xbox controller, the first 4 positions take 15ms in my machine (vs 0.5ms)
+	//		when no joystick is present either by calling joyGetDevCaps or joyGetPosEx.
+	//
 
+	//TODO: First pass query all (load all connected)
+	//		Maybe force this too via function?
+
+	#define INVALID_DELAY_FRAMES		30
+	uctx->frames++;
 	FREObject joy;
-	for(UINT i=0; i<uctx->maxDevs && i<count; i++) {
+	for(UINT i=0; i<uctx->maxDevs /*&& i<count*/; i++) {
 		uctx->lastJoyIndex = i;
-		if(MM_CHECK(joyGetDevCaps(i, &caps, sizeof(JOYCAPS))) != JOYERR_NOERROR) continue;
-		MMRESULT jres = MM_CHECK(joyGetPosEx(i, &info));
+		NJoyState &state = uctx->states[i];
+
+		//if(info->cooldown > 0) {
+		//	info->cooldown--;
+		//	continue;
+		//}
+		if(!state.hasCaps && (uctx->frames%INVALID_DELAY_FRAMES!=0 || (uctx->frames/INVALID_DELAY_FRAMES)%uctx->maxDevs != i)) continue;
+		
+		PROFILE("FREGetArrayElementAt");
 		if(FRE_CHECK(FREGetArrayElementAt(joysticks, i, &joy)) != FRE_OK) continue;
+		PROFILE(NULL);
+		if(!state.hasCaps) {
+			//PROFILE("joyGetPos");
+			//JOYINFO junk;
+			//MMRESULT jres = MM_CHECK(joyGetPos(i, &junk));
+			//if(jres!=JOYERR_NOERROR) continue;
+
+			PROFILE("joyGetDevCaps");
+			if(MM_CHECK(joyGetDevCaps(i, &state.caps, sizeof(JOYCAPS))) != JOYERR_NOERROR) {
+				if(joy && state.hasCaps) {
+					state.hasCaps = false;
+					TRACE("ERROR IN JOYSTICK %i (valid=plugged=false, kill caps cache)", i);
+					FRE_CHECK(FRESetObjectBool(ctx, joy, "valid", false));
+					FRE_CHECK(FRESetObjectBool(ctx, joy, "plugged", false));
+				}
+				continue;
+			}
+			TRACE("CAPS FOUND FOR %i", i);
+			state.hasCaps = true;
+		}
+		PROFILE("joyGetPosEx");
+		MMRESULT jres = MM_CHECK(joyGetPosEx(i, &info));
+		PROFILE(NULL);
+		
 		if(jres == JOYERR_NOERROR || jres == JOYERR_UNPLUGGED) {
 			if(!joy) {
+				PROFILE("createJoy");
 				FREObject joyIndex;
 				if(FRE_CHECK(FRENewObjectFromUint32(i, &joyIndex)) != FRE_OK) continue;
 				if(FRE_CHECK(FRENewObject((const uint8_t *)"com.iam2bam.ane.nativejoystick.intern.NativeJoystickData", 1, &joyIndex, &joy, NULL)) != FRE_OK) continue;
 				if(FRE_CHECK(FRESetArrayElementAt(joysticks, i, joy)) != FRE_OK) continue;
 			}
-
+			PROFILE("set stuff");
 			FRESetObjectBool(ctx, joy, "valid", true);
 		
 			FREObject curr, prev, axesRaw;
@@ -227,11 +329,12 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 
 			FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 0, info.dwXpos));
 			FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 1, info.dwYpos));
-			if(caps.wCaps & JOYCAPS_HASZ) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 2, info.dwZpos));
-			if(caps.wCaps & JOYCAPS_HASR) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 3, info.dwRpos));
-			if(caps.wCaps & JOYCAPS_HASU) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 4, info.dwUpos));
-			if(caps.wCaps & JOYCAPS_HASV) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 5, info.dwVpos));
-			if(caps.wCaps & JOYCAPS_HASPOV) {
+			//TODO: if only wCaps is used, cache just that!
+			if(state.caps.wCaps & JOYCAPS_HASZ) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 2, info.dwZpos));
+			if(state.caps.wCaps & JOYCAPS_HASR) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 3, info.dwRpos));
+			if(state.caps.wCaps & JOYCAPS_HASU) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 4, info.dwUpos));
+			if(state.caps.wCaps & JOYCAPS_HASV) FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 5, info.dwVpos));
+			if(state.caps.wCaps & JOYCAPS_HASPOV) {
 				uint32_t povX, povY;
 				if(info.dwPOV == JOY_POVCENTERED) {
 					povX = povY = 0x7fff;
@@ -243,15 +346,26 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 				FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 6, povX));
 				FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 7, povY));
 			}
+			PROFILE(NULL);
 		}
 		else {
-			if(joy) {
+			if(joy && state.hasCaps) {
+				state.hasCaps = false;
+				TRACE("ERROR IN JOYSTICK %i (valid=plugged=false, kill caps cache)", i);
 				FRE_CHECK(FRESetObjectBool(ctx, joy, "valid", false));
 				FRE_CHECK(FRESetObjectBool(ctx, joy, "plugged", false));
 			}
 		}
 	}
 	uctx->lastJoyIndex = -1;
+
+	//__int64 end = counterGet();
+	//_counterTotal += end-start;
+	//_calls++;
+	//__int64 currms = 1000*(end-start)/_counterFreq;
+	//__int64 totms = 1000*_counterTotal/_counterFreq;
+	//printf("~~~ updateJoysticks took: %I64d:%03I64d s (%I64d:%03I64d s in %d calls)\n", currms/1000, currms%1000, totms/1000, totms%1000, _calls);
+
 	return NULL;
 }
 
@@ -314,6 +428,7 @@ static void ContextInitializer(void *extData, const uint8_t *ctxType, FREContext
 	NJoyContext *uctx = new NJoyContext;
 	uctx->funcList = func;		//Keep the pointer to destroy ourselves just in case? functionsToSet is a const(!) **
 	uctx->maxDevs = joyGetNumDevs();
+	uctx->states = new NJoyState[uctx->maxDevs];
 	FRESetContextNativeData(ctx, uctx);
 
 	*functionsToSet = func;
@@ -322,6 +437,7 @@ static void ContextInitializer(void *extData, const uint8_t *ctxType, FREContext
 static void ContextFinalizer(FREContext ctx) {
 	FREUserContext<NJoyContext> uctx(ctx);
 	free(uctx->funcList);
+	delete[] uctx->states;
 	delete uctx.pointer();
 }
 
@@ -329,6 +445,8 @@ extern "C" __declspec(dllexport) void __cdecl NativeJoystickExtensionInitializer
 	extDataToSet = NULL; // This example does not use any extension data.
 	*ctxInitializerToSet = &ContextInitializer;
 	*ctxFinalizerToSet = &ContextFinalizer;
+
+	counterStart();
 }
 
 extern "C" __declspec(dllexport) void __cdecl NativeJoystickExtensionFinalizer(void* extData) {

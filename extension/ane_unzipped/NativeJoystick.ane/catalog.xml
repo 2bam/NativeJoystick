@@ -9,7 +9,7 @@
     </features>
     <libraries>
         <library path="library.swf">
-            <script name="com/iam2bam/ane/nativejoystick/NativeJoystick" mod="1408628350819">
+            <script name="com/iam2bam/ane/nativejoystick/NativeJoystick" mod="1408652643590">
                 <def id="com.iam2bam.ane.nativejoystick:NativeJoystick"/>
                 <dep id="Array" type="s"/>
                 <dep id="Boolean" type="s"/>
@@ -30,7 +30,7 @@
                 <dep id="flash.events:Event" type="i"/>
                 <dep id="int" type="s"/>
             </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickCaps" mod="1408628432114">
+            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickCaps" mod="1408652628107">
                 <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps"/>
                 <dep id="Boolean" type="s"/>
                 <dep id="Object" type="i"/>
@@ -40,7 +40,7 @@
                 <dep id="int" type="e"/>
                 <dep id="uint" type="s"/>
             </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickData" mod="1408624698450">
+            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickData" mod="1408652639067">
                 <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData"/>
                 <dep id="Boolean" type="s"/>
                 <dep id="Object" type="i"/>
@@ -49,12 +49,13 @@
                 <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" type="s"/>
                 <dep id="uint" type="s"/>
             </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1408642683311">
+            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1410994656733">
                 <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr"/>
                 <dep id="Boolean" type="s"/>
                 <dep id="Error" type="s"/>
                 <dep id="Function" type="s"/>
                 <dep id="Number" type="s"/>
+                <dep id="Object" type="e"/>
                 <dep id="String" type="s"/>
                 <dep id="__AS3__.vec:Vector" type="s"/>
                 <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e"/>
@@ -69,7 +70,7 @@
                 <dep id="trace" type="e"/>
                 <dep id="uint" type="s"/>
             </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickState" mod="1408628073368">
+            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickState" mod="1408652639098">
                 <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState"/>
                 <dep id="Boolean" type="s"/>
                 <dep id="Number" type="s"/>
@@ -81,7 +82,7 @@
                 <dep id="uint" type="s"/>
             </script>
             <digests>
-                <digest type="SHA-256" signed="false" value="87fe577c64bcec5a21efcc01d4f5baf79b0adefd3e265aa7753ac7bf4b78872c"/>
+                <digest type="SHA-256" signed="false" value="c2ba670bedc730699d647c844589cd39e9bbf594932bb7c647eaf7dbdbb839f9"/>
             </digests>
         </library>
     </libraries>
