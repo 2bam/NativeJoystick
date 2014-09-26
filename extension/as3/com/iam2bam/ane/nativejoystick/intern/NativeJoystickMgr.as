@@ -76,6 +76,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 				_tmrPoll = new Timer(_pollInterval);
 				_tmrPoll.addEventListener(TimerEvent.TIMER, onTimerPoll, false, 0, true);
 				_tmrPoll.start();
+				updateJoysticks();		//Force an undelayed poll
 			}
 			catch(error:Error) {
 				trace("NativeJoystickMgr: error creating extension context");
@@ -83,10 +84,10 @@ package com.iam2bam.ane.nativejoystick.intern {
 			}			
 		}
 		
-		/** Is the joystick at the given index plugged and valid? */
+		/** Is the joystick at the given index plugged and detected? */
 		public function isPlugged(index:uint):Boolean {
 			if(index<0 || index>=_maxDevs) return false;
-			return _data[index]!=null ? _data[index].curr.plugged : false;
+			return _data[index]!=null ? _data[index].detected && _data[index].curr.plugged : false;
 		}
 		
 		/**
@@ -117,7 +118,12 @@ package com.iam2bam.ane.nativejoystick.intern {
 				for(var i:int = _maxDevs-1; i>=0; i--) {
 					var data:NativeJoystickData = _data[i];
 					if(!data || !data.curr.plugged) continue;
-					
+
+					//Load caps
+					_ectx.call("getCapabilities", i, data.caps);
+					data.curr.reset(data.caps, true);
+					data.prev.reset(data.caps, false);
+						
 					if(!joyEv) joyEv = new NativeJoystickEvent(NativeJoystickEvent.JOY_PLUGGED);
 					joyEv.index = i;
 					if(!data.joystick) data.joystick = new NativeJoystick(i);
@@ -139,7 +145,10 @@ package com.iam2bam.ane.nativejoystick.intern {
 				}
 				if(_tmrPoll) {
 					_tmrPoll.delay = rhs;
-					if(!_tmrPoll.running) _tmrPoll.start();
+					if(!_tmrPoll.running) {
+						_tmrPoll.start();
+						updateJoysticks();		//Force an undelayed poll
+					}	
 				}
 			}
 		}
@@ -171,7 +180,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 			//Update some utility stuff
 			for(var i:int = _maxDevs-1; i>=0; i--) {
 				var data:NativeJoystickData = _data[i];
-				if(!data || !data.valid) continue;
+				if(!data || !data.detected) continue;
 				var caps:NativeJoystickCaps = data.caps;
 				if(!caps) continue;
 				
@@ -247,7 +256,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 					}
 					else {
 						//Don't unload caps, as they might be needed to identify the device unplugged/with errors
-						if(!data.valid) {	//had some error when unplugging
+						if(!data.detected) {	//had some error when unplugging
 							evType = NativeJoystickEvent.JOY_UNPLUGGED;
 							if(_traceLevel >= TRACE_VERBOSE) trace("[NJOY] Joystick #"+data.index+" unplugged w/errors");
 							//TODO: dispatch event
@@ -296,18 +305,20 @@ package com.iam2bam.ane.nativejoystick.intern {
 			_ectx.call("getCapabilities", index, caps);
 		}
 			
+		//TODO: Check if it was this creating a String each update (reported by Scout)
+		private const STR_UPDATEJOYSTICKS:String = "updateJoysticks";
 		/**
 		 * Manually update all joystick states and possibly capabilities (when just plugged)
 		 * This get's called automatically if pollInterval != 0.
 		 */
 		public function updateJoysticks():void {
-			_ectx.call("updateJoysticks", _data as Object);		//is a String created here? or inside the call? "as Object" changes that?
+			_ectx.call(STR_UPDATEJOYSTICKS, _data);
 		}
 
 		/**
 		 * Max number of joysticks in the system. 
 		 * <b>NOTE</b>: This number is higher than the amount present/plugged/installed.
-		 * Also, there might be invalid joysticks between valid ones, so iterate all indexes.
+		 * Also, there might be invalid (undetected) joysticks between valid ones, so iterate all indexes.
 		 */
 		public function get maxJoysticks():int {
 			return _maxDevs;

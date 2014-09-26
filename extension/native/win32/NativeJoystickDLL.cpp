@@ -25,47 +25,57 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #include "FREUtils.h"
 #include "JoyOEMInfo.h"
 
-#define VERSION				"1.0"	//Keep it in 0-127 ASCII so it's UTF-8 compatible straight away
+#define VERSION				"1.1"	//Keep it in 0-127 ASCII so it's UTF-8 compatible straight away
 
 #define TRACE_SILENT		0		//Show nothing!
 #define TRACE_NORMAL		1		//Show devices found and joystick errors descriptions only
 #define TRACE_VERBOSE		2		//Show detailed errors
 #define TRACE_DIAGNOSE		3		//Show every native call, result of every function and changes in device states
 
-
+#define SQRT_2				1.4142135623730950488016887242097
+#define PI					3.1415926535897932384626433832795
 
 #define FRE_CHECK(x)		FRECheck(ctx, x, #x, __LINE__, __FILE__ "/" __FUNCTION__)
 #define MM_CHECK(x)			MMCheck(ctx, x, #x, __LINE__, __FILE__ "/" __FUNCTION__)
 #define TRACE(fmt, ...)		printf("[NJOY-DLL] " fmt "\n", __VA_ARGS__)		
 
-#define PROFILE(LINE)										//					\
-	//if(subline) {																\
-	//	__int64 delta = 1000000*(counterGet()-substart)/_counterFreq;			\
-	//	printf("%30s took %I64d:%I64d ms\n", subline, delta/1000, delta%1000);	\
-	//}																			\
-	//substart = counterGet(); subline=LINE;
+#define DETECT_DELAY_MS		312
+
+//FIXME: Should make hybrid with AutoPerfo class to dump on "for's continues" too
+#define PROFILE(LINE)							//								\
+	if(subline) {																\
+		__int64 delta = 1000000*(counterGet()-substart)/_counterFreq;			\
+		printf("%30s took %I64d:%I64d ms\n", subline, delta/1000, delta%1000);	\
+	}																			\
+	substart = counterGet(); subline=LINE;
+
+
+
 /*
 Having a user context object is technically unnecessary in this case, although more tidy,
 	as there is no need for per-context initialization/termination.
 But I thought it was better as an example of how to keep info for each ExtensionContext (native side)
 */
-struct NJoyState {
-	bool hasCaps;
-	JOYCAPS caps;
-	NJoyState() : hasCaps(false) { }
-};
-
+struct NJoyState;
 struct NJoyContext {
 	int traceLevel;
 	int lastJoyIndex;				//For error tracing
-	FRENamedFunction* funcList;
-	UINT maxDevs;
-	UINT frames;
-	NJoyState *states;
-	NJoyContext() : traceLevel(TRACE_NORMAL), lastJoyIndex(-1), maxDevs(0), frames(0), states(NULL) { }
+	UINT maxDevs;					//Max number of joysticks
+	FRENamedFunction* funcList;		//To free after we unload (ANE examples seem to have forgot about it or mention it)
+	bool first;						//First update, update and check all
+
+	UINT detectIndex;				//Polling invalid joysticks sometimes takes too much time! Delay it some.
+	UINT detectLastTime;			//Polling invalid joysticks sometimes takes too much time! Delay it some.
+
+	NJoyState *states;				//Array of joystick internal states
+	NJoyContext() : traceLevel(TRACE_NORMAL), lastJoyIndex(-1), maxDevs(0), states(NULL), detectIndex(0), detectLastTime(0) { }
 };
 
-
+struct NJoyState {
+	bool isPlugged;
+	JOYCAPS caps;
+	NJoyState() : isPlugged(false) { }
+};
 
 
 
@@ -231,22 +241,18 @@ static FREObject getCapabilities(FREContext ctx, void *functionData, uint32_t ar
 	return NULL;
 }
 
+
 //function updateJoysticks(joysticks:Vector.<NativeJoystickData>):void
 static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t argc, FREObject argv[]) {
+	assert(argc == 1);
 	FREUserContext<NJoyContext> uctx(ctx);
 
 	//__int64 start = counterGet();
-	//__int64 substart;
-	//const char *subline = NULL;
-
-	assert(argc == 1);
+	__int64 substart;
+	const char *subline = NULL;
 
 	FREObject joysticks = argv[0];
-	//uint32_t count;
 
-	//PROFILE("FREGetArrayLength");
-	//if(FRE_CHECK(FREGetArrayLength(joysticks, &count)) != FRE_OK) return NULL;	//This takes like 500us and is unlikely to be != uctx->maxDevs
-	//PROFILE(NULL);
 	JOYINFOEX info;
 	info.dwSize = sizeof(JOYINFOEX);
 	//TODO: reallyRaw
@@ -257,58 +263,84 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 	//		when no joystick is present either by calling joyGetDevCaps or joyGetPosEx.
 	//
 
-	//TODO: First pass query all (load all connected)
-	//		Maybe force this too via function?
 
-	#define INVALID_DELAY_FRAMES		30
-	uctx->frames++;
-	FREObject joy;
-	for(UINT i=0; i<uctx->maxDevs /*&& i<count*/; i++) {
-		uctx->lastJoyIndex = i;
+	//if(deltaTime > DETECT_DELAY_MS) {
+	//	uctx->detectLastTime = time;
+	//}
+
+	for(UINT i=0; i<uctx->maxDevs; i++) {
+		uctx->lastJoyIndex = i;						//For tracing purposes
 		NJoyState &state = uctx->states[i];
 
-		//if(info->cooldown > 0) {
-		//	info->cooldown--;
-		//	continue;
-		//}
-		if(!state.hasCaps && (uctx->frames%INVALID_DELAY_FRAMES!=0 || (uctx->frames/INVALID_DELAY_FRAMES)%uctx->maxDevs != i)) continue;
-		
-		PROFILE("FREGetArrayElementAt");
-		if(FRE_CHECK(FREGetArrayElementAt(joysticks, i, &joy)) != FRE_OK) continue;
-		PROFILE(NULL);
-		if(!state.hasCaps) {
-			//PROFILE("joyGetPos");
-			//JOYINFO junk;
-			//MMRESULT jres = MM_CHECK(joyGetPos(i, &junk));
-			//if(jres!=JOYERR_NOERROR) continue;
+		//if(!state.isPlugged && (uctx->frames%INVALID_DELAY_FRAMES!=0 || (uctx->frames/INVALID_DELAY_FRAMES)%uctx->maxDevs != i)) continue;
+		//If unplugged/error and not our index or time for detect, skip. 
+		//if(!uctx->first && !state.isPlugged && uctx->detectIndex!=i && deltaTime<DETECT_DELAY_MS) continue;
 
+		if(state.isPlugged) {
+			//Previously plugged and ok
+			if(uctx->detectIndex == i) {
+				//Skip caps detection of plugged joysticks (without reseting timer) as we test it anyway with joyGetPosEx
+				uctx->detectIndex++;
+				uctx->detectIndex %= uctx->maxDevs;			
+			}
+		}
+		else {
+			//Previously unplugged or with errors
+
+			//Get elapsed time since last update.
+			//PROFILE("GetTickCount");
+			UINT time = GetTickCount();
+			UINT deltaTime = time - uctx->detectLastTime;
+			if(deltaTime > 0x7fffffff) deltaTime = 0xffffffff-deltaTime+1;	//uint wrap around after 47 days. Hey, it can happen :D
+			//PROFILE(NULL);
+				
+			//Skip if not our turn or time to detect
+			if(uctx->detectIndex != i || deltaTime < DETECT_DELAY_MS) continue;
+
+			uctx->detectLastTime = time;
+			uctx->detectIndex++;
+			uctx->detectIndex %= uctx->maxDevs;
+
+			if(uctx->traceLevel >= TRACE_VERBOSE) TRACE("Detecting Joystick %d...", i);
+						
+			//Otherwise try to detect it
 			PROFILE("joyGetDevCaps");
 			if(MM_CHECK(joyGetDevCaps(i, &state.caps, sizeof(JOYCAPS))) != JOYERR_NOERROR) {
-				if(joy && state.hasCaps) {
-					state.hasCaps = false;
-					TRACE("ERROR IN JOYSTICK %i (valid=plugged=false, kill caps cache)", i);
-					FRE_CHECK(FRESetObjectBool(ctx, joy, "valid", false));
-					FRE_CHECK(FRESetObjectBool(ctx, joy, "plugged", false));
-				}
-				continue;
+				continue;		//Not detected this time
 			}
-			TRACE("CAPS FOUND FOR %i", i);
-			state.hasCaps = true;
+
+			if(uctx->traceLevel >= TRACE_VERBOSE) TRACE("Detected!\n");
+
+			//If detected, flag internally as plugged
+			state.isPlugged = true;
+
+			//TRACE("CAPS FOUND FOR %i", i);
 		}
+
 		PROFILE("joyGetPosEx");
 		MMRESULT jres = MM_CHECK(joyGetPosEx(i, &info));
 		PROFILE(NULL);
-		
+
+		//Get our AS3 side NativeJoystickData object
+		FREObject joy;
+		PROFILE("FREGetArrayElementAt");
+		if(FRE_CHECK(FREGetArrayElementAt(joysticks, i, &joy)) != FRE_OK) continue;
+		PROFILE(NULL);
+					
 		if(jres == JOYERR_NOERROR || jres == JOYERR_UNPLUGGED) {
+
+
+			//If no NativeJoystickData in AS3 array, create it.
 			if(!joy) {
-				PROFILE("createJoy");
+				PROFILE("Create NativeJoystickData");
 				FREObject joyIndex;
 				if(FRE_CHECK(FRENewObjectFromUint32(i, &joyIndex)) != FRE_OK) continue;
 				if(FRE_CHECK(FRENewObject((const uint8_t *)"com.iam2bam.ane.nativejoystick.intern.NativeJoystickData", 1, &joyIndex, &joy, NULL)) != FRE_OK) continue;
 				if(FRE_CHECK(FRESetArrayElementAt(joysticks, i, joy)) != FRE_OK) continue;
 			}
-			PROFILE("set stuff");
-			FRESetObjectBool(ctx, joy, "valid", true);
+
+			PROFILE("Set AS3 side stuff");
+			FRESetObjectBool(ctx, joy, "detected", true);
 		
 			FREObject curr, prev, axesRaw;
 
@@ -318,7 +350,16 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 			FRE_CHECK(FRESetObjectProperty(joy, (uint8_t *)"curr", curr, NULL));
 			FRE_CHECK(FRESetObjectProperty(joy, (uint8_t *)"prev", prev, NULL));
 
-			FRESetObjectBool(ctx, curr, "plugged", jres == JOYERR_NOERROR);
+			if(jres == JOYERR_UNPLUGGED) {
+				FRESetObjectBool(ctx, curr, "plugged", false);
+				//continue;		//Don't skip, so "info" clears all states.
+								//TODO: Check if "info" is actually "axes centered and buttons depressed"
+			}
+			else {
+				FRESetObjectBool(ctx, curr, "plugged", true);
+			}
+
+			//Update state
 			FRESetObjectUint32(ctx, curr, "buttons", info.dwButtons);		
 			FRESetObjectBool(ctx, curr, "povPressed", info.dwPOV != JOY_POVCENTERED);
 			FRESetObjectDouble(ctx, curr, "povAngle", info.dwPOV == JOY_POVCENTERED ? 0.0 : info.dwPOV/100.0);
@@ -340,8 +381,12 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 					povX = povY = 0x7fff;
 				}
 				else {
-					povX = (uint32_t)(0x7fff*(1.f+sinf(3.141592f * info.dwPOV/18000.f)));
-					povY = (uint32_t)(0x7fff*(1.f-cosf(3.141592f * info.dwPOV/18000.f)));
+					//By expanding to SQRT_2 radius and clamping to -1..1 is more similar to how most analog sticks report their "saturated" values
+					double pph = PI * info.dwPOV/18000.f;
+					double pc = SQRT_2 * cos(pph);
+					double ps = SQRT_2 * sin(pph);
+					povX = (uint32_t)( 0x7fff * (pc < -1.0 ? 0.0 : (pc > 1.0 ? 2 : 1.0+pc)) );
+					povY = (uint32_t)( 0x7fff * (ps < -1.0 ? 0.0 : (ps > 1.0 ? 2 : 1.0+ps)) );
 				}
 				FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 6, povX));
 				FRE_CHECK(FRESetVectorUint32(ctx, axesRaw, 7, povY));
@@ -349,15 +394,19 @@ static FREObject updateJoysticks(FREContext ctx, void *functionData, uint32_t ar
 			PROFILE(NULL);
 		}
 		else {
-			if(joy && state.hasCaps) {
-				state.hasCaps = false;
-				TRACE("ERROR IN JOYSTICK %i (valid=plugged=false, kill caps cache)", i);
-				FRE_CHECK(FRESetObjectBool(ctx, joy, "valid", false));
-				FRE_CHECK(FRESetObjectBool(ctx, joy, "plugged", false));
+			if(joy && state.isPlugged) {
+				state.isPlugged = false;
+
+				if(uctx->traceLevel >= TRACE_NORMAL) TRACE("ERROR IN JOYSTICK %i", i);
+
+				FRE_CHECK(FRESetObjectBool(ctx, joy, "detected", false));
+				//FRE_CHECK(FRESetObjectBool(ctx, joy, "plugged", false));		//This goes in the state, but isPlugged() already takes into account "detected"
 			}
 		}
 	}
+
 	uctx->lastJoyIndex = -1;
+	uctx->first = false;
 
 	//__int64 end = counterGet();
 	//_counterTotal += end-start;
@@ -399,7 +448,7 @@ static void ContextInitializer(void *extData, const uint8_t *ctxType, FREContext
 	*numFunctionsToSet = 6;
 	FRENamedFunction* func = (FRENamedFunction *)malloc(sizeof(FRENamedFunction) * (*numFunctionsToSet));
 
-	TRACE("ctx INIT!");
+	//TRACE("ctx INIT!");
 
 	func[0].name = (const uint8_t*)"getVersion";
 	func[0].functionData = NULL;

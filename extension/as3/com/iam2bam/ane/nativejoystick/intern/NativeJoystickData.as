@@ -24,8 +24,8 @@ package com.iam2bam.ane.nativejoystick.intern {
 		
 		/** Joystick index */
 		public var index:uint;						//Internal index
-		/** Validity of this joystick (might be false for errors or for NativeJoystick instantiations of not present indexes) */
-		public var valid:Boolean;
+		/** Is this joystick detected even if unplugged (e.g. was plugged once)? (might be false for errors or for NativeJoystick instantiations of not present indexes) */
+		public var detected:Boolean;
 		
 		/** <b>INTERNAL</b>: Don't use.
 		 * Joystick flyweight kept for events (auto-created once for the first dispatched event). */

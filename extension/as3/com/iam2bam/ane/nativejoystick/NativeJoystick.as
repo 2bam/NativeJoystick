@@ -58,10 +58,10 @@ package com.iam2bam.ane.nativejoystick {
 		/**
 		 * Max number of joysticks in the system. 
 		 * <b>NOTE</b>: This number is higher than the amount present/plugged/installed.
-		 * Also, there might be invalid joysticks between valid ones, so iterate all indexes.
+		 * Also, there might be invalid (undetected) joysticks between valid ones, so iterate all indexes.
 		 */
 		static public function get maxJoysticks():uint { return manager.maxJoysticks; }
-		/** Is the joystick at the given index plugged and valid? */
+		/** Is the joystick at the given index plugged and detected? */
 		static public function isPlugged(index:uint):Boolean { return manager.isPlugged(index); }
 		/** Access to the unique joystick manager */
 		static public function get manager():NativeJoystickMgr { return NativeJoystickMgr.instance(); }
