@@ -49,7 +49,7 @@
                 <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" type="s"/>
                 <dep id="uint" type="s"/>
             </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1411076969683">
+            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1412032238066">
                 <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr"/>
                 <dep id="Boolean" type="s"/>
                 <dep id="Error" type="s"/>
@@ -81,7 +81,7 @@
                 <dep id="uint" type="s"/>
             </script>
             <digests>
-                <digest type="SHA-256" signed="false" value="174179174a248e50b656d8626b6ff15098fa01207e65dfc7f64c95f0d0131c56"/>
+                <digest type="SHA-256" signed="false" value="ee2810194f4fd4617853290947fe733bd9eb2922ef05918086b3ae4eba5148f9"/>
             </digests>
         </library>
     </libraries>

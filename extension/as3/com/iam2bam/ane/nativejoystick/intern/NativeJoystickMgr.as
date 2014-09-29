@@ -43,6 +43,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 		static private var _mgr:NativeJoystickMgr;		//Main instance
 		
 		public static const DEF_POLL_INTERVAL:Number = 33;
+		private static const VERSION:String = "1.11";
 		
 		/** Manually dispatch an NativeJoystickEvent.JOY_PLUGGED event when adding an event listener for every joystick already connected. */
 		public var dispatchAlreadyPlugged:Boolean = true;
@@ -50,6 +51,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 		private var _ectx:ExtensionContext;
 		private var _pollInterval:Number;
 		private var _traceLevel:uint;
+		private var _detectIntervalMillis:uint;
 		private var _tmrPoll:Timer;
 		//private var _tmrReload:Timer;
 		
@@ -72,6 +74,11 @@ package com.iam2bam.ane.nativejoystick.intern {
 				_data = new Vector.<NativeJoystickData>(_maxDevs, true);
 				
 				trace("NativeJoystick extension by 2bam.com - v"+version);
+				if(VERSION != version) {
+					trace("NativeJoystick dll/ane version mismatch: DLL v"+version+" ANE v"+VERSION);
+				}
+				
+				detectIntervalMillis = 300;
 				
 				_tmrPoll = new Timer(_pollInterval);
 				_tmrPoll.addEventListener(TimerEvent.TIMER, onTimerPoll, false, 0, true);
@@ -270,7 +277,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 					
 					//Dispatch plug/unplug/error events
 					if(hasEventListener(evType)) {
-						dispatchEvent(createEvent(NativeJoystickEvent.JOY_PLUGGED, data));
+						dispatchEvent(createEvent(evType, data));
 					}
 				}
 			}
@@ -288,6 +295,22 @@ package com.iam2bam.ane.nativejoystick.intern {
 			if(_traceLevel != rhs) {
 				_traceLevel = rhs;
 				_ectx.call("setTraceLevel", rhs);
+			}
+		}
+		
+		/**
+		 * Set the detection interval in milliseconds.
+		 * Each updateJoysticks will try to detect ONE undetected/unplugged joystick every interval to avoid framerate drops.
+		 * You could change to a lower value when configuring for faster response but it's recommended to keep in 300+ ms for in-game.
+		 */
+		public function get detectIntervalMillis():uint {
+			return _detectIntervalMillis;
+		}
+		
+		public function set detectIntervalMillis(rhs:uint):void {
+			if(_detectIntervalMillis != rhs) {
+				_detectIntervalMillis = rhs;
+				_ectx.call("setDetectDelay", rhs);
 			}
 		}
 		

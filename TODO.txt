@@ -1,9 +1,9 @@
-On load do an update previous to the timer (zero delay)
+xx On load do an update previous to the timer (zero delay)
 
 replugged flag in plugged event for invalid but pressent joysitcks
 
 access of joysticks and axes in compact vector (no nulls in between). Also allow access by name (X, R, POVX...)
 
-option to get POVX and POVY values as analog axes go ( clamp(sin(angle)*sqrt(2), -1, 1) )
+xx option to get POVX and POVY values as analog axes go ( clamp(sin(angle)*sqrt(2), -1, 1) )
 
 FIXME: Unplugging in-game sometimes makes the dll crash?
