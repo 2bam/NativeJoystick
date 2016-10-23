@@ -34,7 +34,8 @@ set SIGNING_OPTIONS=
 :: if errorlevel 1 goto invalid_xml
 
 :: First build the SWC
-call %FLEX_SDK%\bin\acompc -debug=false -source-path .\as3 -include-classes %ANE_CLASSES% -swf-version=%ANE_SWF_VERSION% -output .\lib\%ANE_NAME%.swc
+:: 2bam command - call %FLEX_SDK%\bin\acompc -debug=true -source-path .\as3 -include-classes %ANE_CLASSES% -swf-version=%ANE_SWF_VERSION% -output .\lib\%ANE_NAME%.swc
+call %FLEX_SDK%\bin\acompc -debug=true -source-path .\as3 -include-classes %ANE_CLASSES% -swf-version=%ANE_SWF_VERSION% -output .\lib\%ANE_NAME%.swc
 
 :: Extract it (SWC is a zip) and copy library.swf, the definitions
 call unzip.bat .\lib\%ANE_NAME%.swc .\tmp

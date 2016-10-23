@@ -37,17 +37,19 @@ package {
 			tf2.height = stage.stageHeight/2;
 			
 			var mgr:NativeJoystickMgr = NativeJoystick.manager;
-			//mgr.pollInterval = 500;
-			mgr.pollInterval = 33;
+			//mgr.pollInterval = 500; //updateJoysticks
+			mgr.pollInterval = 33; // Math.round(1/30) tempo por cada quadro a 30fps
 			//mgr.traceLevel = NativeJoystickMgr.TRACE_DIAGNOSE;
 			mgr.traceLevel = NativeJoystickMgr.TRACE_VERBOSE;
 			
+			trace("tadeuzinho");
+			
 			//Per-event access (slower, needs dispatching and 
-			NativeJoystick.manager.addEventListener(NativeJoystickEvent.JOY_PLUGGED, onPlugged);
-			NativeJoystick.manager.addEventListener(NativeJoystickEvent.JOY_UNPLUGGED, onUnplugged);
-			NativeJoystick.manager.addEventListener(NativeJoystickEvent.AXIS_MOVE, onAxisMove);
-			NativeJoystick.manager.addEventListener(NativeJoystickEvent.BUTTON_DOWN, onBtnDown);
-			NativeJoystick.manager.addEventListener(NativeJoystickEvent.BUTTON_UP, onBtnUp);
+			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.JOY_PLUGGED, onPlugged);
+			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.JOY_UNPLUGGED, onUnplugged);
+			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.AXIS_MOVE, onAxisMove);
+			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.BUTTON_DOWN, onBtnDown);
+			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.BUTTON_UP, onBtnUp);
 			
 			stage.addEventListener(Event.ENTER_FRAME, onFrame);
 		}

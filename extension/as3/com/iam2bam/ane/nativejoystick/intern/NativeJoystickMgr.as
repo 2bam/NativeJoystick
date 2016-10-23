@@ -63,6 +63,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 
 		public function NativeJoystickMgr() {
 			try {
+				trace("MEU AMIGO!!!");
 				_traceLevel = TRACE_NORMAL;
 				_maxDevs = -1;
 				_pollInterval = DEF_POLL_INTERVAL;
@@ -73,7 +74,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 				_maxDevs = int(_ectx.call("getMaxDevices"));
 				_data = new Vector.<NativeJoystickData>(_maxDevs, true);
 				
-				trace("NativeJoystick extension by 2bam.com - v"+version);
+				trace("NativeJoystick extension by 2bam.com & tudumanu - v"+version);
 				if(VERSION != version) {
 					trace("NativeJoystick dll/ane version mismatch: DLL v"+version+" ANE v"+VERSION);
 				}
@@ -178,6 +179,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 		}
 		
 		private function onTimerPoll(ev:TimerEvent):void {
+			trace("2aaaaaaaaaaa");
 			updateJoysticks();
 			
 			var dispJP:Boolean = hasEventListener(NativeJoystickEvent.BUTTON_DOWN);

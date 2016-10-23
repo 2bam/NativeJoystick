@@ -8,7 +8,8 @@ echo Building ANE...
 echo.
 
 pushd extension
-call BuildANE.bat > nul
+:: 2bam command - call BuildANE.bat > nul
+call BuildANE.bat
 popd
 
 echo.
