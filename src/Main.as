@@ -25,6 +25,7 @@ package {
 		private var tf2:TextField;
 		private var x360:XBOXGUI;
 		private var mgr:NativeJoystickMgr;
+		private var _analogThreshold:Number = 0.1;
 		
 		public function Main():void {
 			tf = new TextField;
@@ -43,8 +44,6 @@ package {
 			mgr.pollInterval = 0; // Math.round(1/30) tempo por cada quadro a 30fps
 			//mgr.traceLevel = NativeJoystickMgr.TRACE_DIAGNOSE;
 			mgr.traceLevel = NativeJoystickMgr.TRACE_VERBOSE;
-			
-			trace("tadeuzinho");
 			
 			//Per-event access (slower, needs dispatching and 
 			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.JOY_PLUGGED, onPlugged);
@@ -68,42 +67,50 @@ package {
 					}
 				}
 			}
-		}
-		
-		private function onAxisMove(ev:NativeJoystickEvent):void {
-			tf2.appendText("JOYSTICK #"+ev.index+" MOVED AXIS "+
-				NativeJoystick.AXIS_NAMES[ev.axisIndex]+" = "+ev.axisValue.toFixed(2)+" (DELTA "+ev.axisDelta.toFixed(2)+")\n");
-			tf2.scrollV = tf2.maxScrollV;
-		}
-		
-		private function onBtnDown(ev:NativeJoystickEvent):void {
-			tf2.appendText("JOYSTICK #"+ev.index+" BUTTON DOWN #"+ev.buttonIndex+"\n");
-			tf2.scrollV = tf2.maxScrollV;
-		}
-		
-		private function onBtnUp(ev:NativeJoystickEvent):void {
-			tf2.appendText("JOYSTICK #"+ev.index+" BUTTON UP #"+ev.buttonIndex+"\n");
-			tf2.scrollV = tf2.maxScrollV;
-		}
-
-		private function onPlugged(ev:NativeJoystickEvent):void {
-			if(!x360 && ev.joystick.capabilities.oemName.search(/xbox/i) >= 0) {
-				x360 = new XBOXGUI(ev.index);
-				addChild(x360);
+			
+			if (ev.keyCode == Keyboard.A) {
+				mgr.detectIntervalMillis = 10000;
 			}
-			tf2.appendText("JOYSTICK #"+ev.index+" ("+ev.joystick.capabilities.oemName+") PLUGGED\n");
-			//tf2.appendText(ev.joystick.capabilities.toString());
-			tf2.scrollV = tf2.maxScrollV;
+			
+			if (ev.keyCode == Keyboard.S) {
+				mgr.detectIntervalMillis = 33;
+			}
 		}
 		
-		private function onUnplugged(ev:NativeJoystickEvent):void {
-			if(x360 && x360.joystick.index == ev.index) {
-				removeChild(x360);
-				x360 = null;
-			}
-			tf2.appendText("JOYSTICK #"+ev.index+" ("+ev.joystick.capabilities.oemName+") UNPLUGGED\n");
-			tf2.scrollV = tf2.maxScrollV;
-		}
+		//private function onAxisMove(ev:NativeJoystickEvent):void {
+			//tf2.appendText("JOYSTICK #"+ev.index+" MOVED AXIS "+
+				//NativeJoystick.AXIS_NAMES[ev.axisIndex]+" = "+ev.axisValue.toFixed(2)+" (DELTA "+ev.axisDelta.toFixed(2)+")\n");
+			//tf2.scrollV = tf2.maxScrollV;
+		//}
+		//
+		//private function onBtnDown(ev:NativeJoystickEvent):void {
+			//tf2.appendText("JOYSTICK #"+ev.index+" BUTTON DOWN #"+ev.buttonIndex+"\n");
+			//tf2.scrollV = tf2.maxScrollV;
+		//}
+		//
+		//private function onBtnUp(ev:NativeJoystickEvent):void {
+			//tf2.appendText("JOYSTICK #"+ev.index+" BUTTON UP #"+ev.buttonIndex+"\n");
+			//tf2.scrollV = tf2.maxScrollV;
+		//}
+		//
+		//private function onPlugged(ev:NativeJoystickEvent):void {
+			//if(!x360 && ev.joystick.capabilities.oemName.search(/xbox/i) >= 0) {
+				//x360 = new XBOXGUI(ev.index);
+				//addChild(x360);
+			//}
+			//tf2.appendText("JOYSTICK #"+ev.index+" ("+ev.joystick.capabilities.oemName+") PLUGGED\n");
+			////tf2.appendText(ev.joystick.capabilities.toString());
+			//tf2.scrollV = tf2.maxScrollV;
+		//}
+		//
+		//private function onUnplugged(ev:NativeJoystickEvent):void {
+			//if(x360 && x360.joystick.index == ev.index) {
+				//removeChild(x360);
+				//x360 = null;
+			//}
+			//tf2.appendText("JOYSTICK #"+ev.index+" ("+ev.joystick.capabilities.oemName+") UNPLUGGED\n");
+			//tf2.scrollV = tf2.maxScrollV;
+		//}
 
 		//Per-frame access (faster)
 		private function onFrame(ev:Event):void {
@@ -123,9 +130,38 @@ package {
 					for(var a:int = 0; a<NativeJoystick.AXIS_MAX; a++) {
 						//if(joy.data.caps.hasAxis[a]) txt += "AXIS "+NativeJoystick.AXIS_NAMES[a]+" = " + joy.axis(a).toFixed(2) + "\n";
 						//if(joy.data.caps.hasAxis[a])  txt += "HAS ";
-						if(joy.data.caps.hasAxis[a]) // txt += "HAS ";
-							txt += "AXIS "+NativeJoystick.AXIS_NAMES[a]+" = " + joy.axis(a).toFixed(2) + "\n";
+						if (joy.data.caps.hasAxis[a]) {
+							var cval:Number = 2.0*joy.data.curr.axesRaw[a]/joy.data.caps.axesRange[a]-1.0;
+							if ( -0.1 < cval && cval < 0.1) cval = 0; //_analogThreshold (ignora movimentos leves (<10% de movimento do analog)
+							joy.data.curr.axes[a] = cval;
+							txt += "AXIS " + NativeJoystick.AXIS_NAMES[a] + " = " + joy.axis(a).toFixed(2) + "\n";
+						}
 					}
+					
+					/*//Update normalized axes values and dispatch move events
+					//var nAxes:int = NativeJoystick.AXIS_MAX;
+					var acurr:Vector.<Number> = data.curr.axes;
+					//var aprev:Vector.<Number> = data.prev.axes;
+					var arange:Vector.<uint> = caps.axesRange;
+					//var hasa:Vector.<Boolean> = caps.hasAxis;
+					var araw:Vector.<uint> = data.curr.axesRaw;
+					for(j=0; j<nAxes; j++) {
+						var cval:Number;
+						//var pval:Number = aprev[j];
+						//if(!hasa[j]) continue;
+						acurr[j] = cval = 2.0*araw[j]/arange[j]-1.0;
+						if(-0.1 < cval && cval < 0.1) cval = 0;
+						//if(-0.1 < pval && pval < 0.1) pval = 0;
+						//var delta:Number = cval - pval;
+						//if(dispMove && delta != 0) {
+							//joyEv = createEvent(NativeJoystickEvent.AXIS_MOVE, data);
+							//joyEv.axisIndex = j;	
+							//joyEv.axisValue = cval;
+							//joyEv.axisDelta = delta;
+							//dispatchEvent(joyEv);
+						//}
+					}*/
+					
 					if(joy.data.caps.hasPOV) txt += "POV ANGLE " + (joy.povPressed ? joy.povAngle.toFixed(2) : "CENTERED") + "\n";
 					txt+="\n"
 				}

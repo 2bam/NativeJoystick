@@ -10,7 +10,7 @@
   </features>
   <libraries>
     <library path="library.swf">
-      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1479211835975" signatureChecksum="2131606129" >
+      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1479249218572" signatureChecksum="2131606129" >
         <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr" /> 
         <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="s" /> 
         <dep id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent" type="s" /> 
@@ -26,13 +26,13 @@
         <dep id="flash.events:TimerEvent" type="e" /> 
         <dep id="__AS3__.vec:Vector" type="e" /> 
         <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e" /> 
-        <dep id="Error" type="e" /> 
         <dep id="flash.utils:Timer" type="e" /> 
+        <dep id="Error" type="e" /> 
         <dep id="flash.external:ExtensionContext" type="e" /> 
         <dep id="flash.events:EventDispatcher" type="i" /> 
         <dep id="AS3" type="n" /> 
       </script>
-      <script name="_f4f4235f48575d545d229c1aa8c48d7c4b87d256a2fb2496b2fd35c1003f40c1_flash_display_Sprite" mod="1479237404813" signatureChecksum="46692811" >
+      <script name="_f4f4235f48575d545d229c1aa8c48d7c4b87d256a2fb2496b2fd35c1003f40c1_flash_display_Sprite" mod="1479251363168" signatureChecksum="46692811" >
         <def id="_f4f4235f48575d545d229c1aa8c48d7c4b87d256a2fb2496b2fd35c1003f40c1_flash_display_Sprite" /> 
         <dep id="flash.system:Security" type="e" /> 
         <dep id="flash.display:Sprite" type="i" /> 
@@ -77,7 +77,7 @@
         <dep id="AS3" type="n" /> 
       </script>
       <digests>
-        <digest type="SHA-256" signed="false" value="294756643b67c73910d008377eed18d372654a653ea307e9a8060f8f03e70f28"   />
+        <digest type="SHA-256" signed="false" value="e70440305820c3831f317cd6f01c96d7b345e7ef4442a8bcd17e2fae8ec9cfd8"   />
       </digests>
     </library>
   </libraries>

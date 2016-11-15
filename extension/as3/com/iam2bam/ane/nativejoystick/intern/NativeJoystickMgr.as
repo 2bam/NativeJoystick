@@ -63,7 +63,6 @@ package com.iam2bam.ane.nativejoystick.intern {
 
 		public function NativeJoystickMgr() {
 			try {
-				trace("MEU AMIGO!!!");
 				_traceLevel = TRACE_NORMAL;
 				_maxDevs = -1;
 				_pollInterval = DEF_POLL_INTERVAL;
