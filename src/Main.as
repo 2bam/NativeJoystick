@@ -12,7 +12,9 @@ package {
 	import com.iam2bam.ane.nativejoystick.intern.NativeJoystickMgr;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.text.TextField;
+	import flash.ui.Keyboard;
 	
 	/**
 	 * ...
@@ -22,6 +24,7 @@ package {
 		private var tf:TextField;
 		private var tf2:TextField;
 		private var x360:XBOXGUI;
+		private var mgr:NativeJoystickMgr;
 		
 		public function Main():void {
 			tf = new TextField;
@@ -30,15 +33,14 @@ package {
 			tf.width = stage.stageWidth/2;
 			tf.height = stage.stageHeight;
 			tf2 = new TextField;
-			tf2.text = "Hello, world!\n";
+			tf2.text = "Hello, world2!\n";
 			addChild(tf2);
 			tf2.x = stage.stageWidth/2;
 			tf2.width = stage.stageWidth/2;
 			tf2.height = stage.stageHeight/2;
 			
-			var mgr:NativeJoystickMgr = NativeJoystick.manager;
-			//mgr.pollInterval = 500; //updateJoysticks
-			mgr.pollInterval = 33; // Math.round(1/30) tempo por cada quadro a 30fps
+			mgr = NativeJoystick.manager;
+			mgr.pollInterval = 0; // Math.round(1/30) tempo por cada quadro a 30fps
 			//mgr.traceLevel = NativeJoystickMgr.TRACE_DIAGNOSE;
 			mgr.traceLevel = NativeJoystickMgr.TRACE_VERBOSE;
 			
@@ -52,6 +54,20 @@ package {
 			//NativeJoystick.manager.addEventListener(NativeJoystickEvent.BUTTON_UP, onBtnUp);
 			
 			stage.addEventListener(Event.ENTER_FRAME, onFrame);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
+		}
+		
+		private function onKeyPress(ev:KeyboardEvent):void {
+			trace("btn pressed");
+			if (ev.keyCode == Keyboard.SPACE) {
+				trace(" reloadDriverConfig()");
+				mgr.reloadDriverConfig();
+				for(var i:int = 0; i<NativeJoystick.maxJoysticks; i++) {
+					if(NativeJoystick.isPlugged(i)) {
+						mgr.getCapabilities(i, new NativeJoystick(i).data.caps);
+					}
+				}
+			}
 		}
 		
 		private function onAxisMove(ev:NativeJoystickEvent):void {
@@ -90,11 +106,13 @@ package {
 		}
 
 		//Per-frame access (faster)
-		private function onFrame(ev:Event):void {	
+		private function onFrame(ev:Event):void {
+			mgr.updateJoysticks();
 			var txt:String = "MANUAL POLLING\n\n";
 			for(var i:int = 0; i<NativeJoystick.maxJoysticks; i++) {
 				if(NativeJoystick.isPlugged(i)) {
 					var joy:NativeJoystick = new NativeJoystick(i);
+					//getCapabilities
 
 					txt += "JOYSTICK "+i+" " + joy.data.caps.oemName + "\n";
 					txt += "BUTTONS "+joy.numButtons+" ["

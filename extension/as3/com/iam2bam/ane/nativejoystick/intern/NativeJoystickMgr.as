@@ -179,7 +179,6 @@ package com.iam2bam.ane.nativejoystick.intern {
 		}
 		
 		private function onTimerPoll(ev:TimerEvent):void {
-			trace("2aaaaaaaaaaa");
 			updateJoysticks();
 			
 			var dispJP:Boolean = hasEventListener(NativeJoystickEvent.BUTTON_DOWN);
