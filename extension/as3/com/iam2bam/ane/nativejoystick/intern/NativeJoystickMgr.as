@@ -73,7 +73,7 @@ package com.iam2bam.ane.nativejoystick.intern {
 				_maxDevs = int(_ectx.call("getMaxDevices"));
 				_data = new Vector.<NativeJoystickData>(_maxDevs, true);
 				
-				trace("NativeJoystick extension by 2bam.com - v"+version);
+				trace("NativeJoystick extension by 2bam.com & tudumanu - v"+version);
 				if(VERSION != version) {
 					trace("NativeJoystick dll/ane version mismatch: DLL v"+version+" ANE v"+VERSION);
 				}

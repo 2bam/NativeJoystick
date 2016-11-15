@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<application xmlns="http://ns.adobe.com/air/application/4.0">
+<application xmlns="http://ns.adobe.com/air/application/23.0">
   <id>NativeJoystickDemo</id>
   <versionNumber>1.0</versionNumber>
   <filename>NativeJoystickDemo</filename>
@@ -15,6 +15,7 @@
     <resizable>true</resizable>
     <x>0</x>
     <y>0</y>
+    <renderMode>direct</renderMode>
   </initialWindow>
   <!-- 
 	More options:
@@ -24,4 +25,7 @@
   <extensions>
     <extensionID>com.iam2bam.ane.nativejoystick</extensionID>
   </extensions>
+  <android>
+    <manifestAdditions><![CDATA[<manifest android:installLocation="auto" xmlns:android="http://schemas.android.com/apk/res/android" />]]></manifestAdditions>
+  </android>
 </application>

@@ -1,88 +1,86 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding ="utf-8"?>
 <swc xmlns="http://www.adobe.com/flash/swccatalog/9">
-    <versions>
-        <swc version="1.2"/>
-        <compiler name="ActionScript Compiler" version="2.0.0" build="354110"/>
-    </versions>
-    <features>
-        <feature-script-deps/>
-    </features>
-    <libraries>
-        <library path="library.swf">
-            <script name="com/iam2bam/ane/nativejoystick/NativeJoystick" mod="1411076993611">
-                <def id="com.iam2bam.ane.nativejoystick:NativeJoystick"/>
-                <dep id="Array" type="s"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Number" type="s"/>
-                <dep id="Object" type="i"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr" type="s"/>
-                <dep id="int" type="s"/>
-                <dep id="uint" type="s"/>
-            </script>
-            <script name="com/iam2bam/ane/nativejoystick/event/NativeJoystickEvent" mod="1408642710874">
-                <def id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Number" type="s"/>
-                <dep id="String" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="s"/>
-                <dep id="flash.events:Event" type="i"/>
-                <dep id="int" type="s"/>
-            </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickCaps" mod="1408652628107">
-                <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Object" type="i"/>
-                <dep id="String" type="s"/>
-                <dep id="__AS3__.vec:Vector" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e"/>
-                <dep id="int" type="e"/>
-                <dep id="uint" type="s"/>
-            </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickData" mod="1411076782310">
-                <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Object" type="i"/>
-                <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" type="s"/>
-                <dep id="uint" type="s"/>
-            </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1412032238066">
-                <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Error" type="s"/>
-                <dep id="Function" type="s"/>
-                <dep id="Number" type="s"/>
-                <dep id="String" type="s"/>
-                <dep id="__AS3__.vec:Vector" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e"/>
-                <dep id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent" type="e"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="e"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="s"/>
-                <dep id="flash.events:EventDispatcher" type="i"/>
-                <dep id="flash.events:TimerEvent" type="s"/>
-                <dep id="flash.external:ExtensionContext" type="s"/>
-                <dep id="flash.utils:Timer" type="s"/>
-                <dep id="int" type="s"/>
-                <dep id="trace" type="e"/>
-                <dep id="uint" type="s"/>
-            </script>
-            <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickState" mod="1408652639098">
-                <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState"/>
-                <dep id="Boolean" type="s"/>
-                <dep id="Number" type="s"/>
-                <dep id="Object" type="i"/>
-                <dep id="__AS3__.vec:Vector" type="s"/>
-                <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e"/>
-                <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s"/>
-                <dep id="int" type="e"/>
-                <dep id="uint" type="s"/>
-            </script>
-            <digests>
-                <digest type="SHA-256" signed="false" value="ee2810194f4fd4617853290947fe733bd9eb2922ef05918086b3ae4eba5148f9"/>
-            </digests>
-        </library>
-    </libraries>
+  <versions>
+    <swc version="1.2" />
+    <flex version="4.6.0" build="23201" minimumSupportedVersion="3.0.0" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickMgr" mod="1479249218572" signatureChecksum="2131606129" >
+        <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent" type="s" /> 
+        <dep id="flash.events:TimerEvent" type="s" /> 
+        <dep id="__AS3__.vec:Vector" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s" /> 
+        <dep id="flash.utils:Timer" type="s" /> 
+        <dep id="Error" type="s" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="trace" type="e" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="e" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent" type="e" /> 
+        <dep id="flash.events:TimerEvent" type="e" /> 
+        <dep id="__AS3__.vec:Vector" type="e" /> 
+        <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e" /> 
+        <dep id="flash.utils:Timer" type="e" /> 
+        <dep id="Error" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="_f4f4235f48575d545d229c1aa8c48d7c4b87d256a2fb2496b2fd35c1003f40c1_flash_display_Sprite" mod="1479251363168" signatureChecksum="46692811" >
+        <def id="_f4f4235f48575d545d229c1aa8c48d7c4b87d256a2fb2496b2fd35c1003f40c1_flash_display_Sprite" /> 
+        <dep id="flash.system:Security" type="e" /> 
+        <dep id="flash.display:Sprite" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickCaps" mod="1476566184031" signatureChecksum="872083603" >
+        <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" /> 
+        <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e" /> 
+        <dep id="Object" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="com/iam2bam/ane/nativejoystick/NativeJoystick" mod="1476566184029" signatureChecksum="1423369406" >
+        <def id="com.iam2bam.ane.nativejoystick:NativeJoystick" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickMgr" type="e" /> 
+        <dep id="Object" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickData" mod="1476566184031" signatureChecksum="325422688" >
+        <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickData" /> 
+        <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="e" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" type="e" /> 
+        <dep id="Object" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="com/iam2bam/ane/nativejoystick/event/NativeJoystickEvent" mod="1476566184030" signatureChecksum="2267661573" >
+        <def id="com.iam2bam.ane.nativejoystick.event:NativeJoystickEvent" /> 
+        <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="s" /> 
+        <dep id="flash.events:Event" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="com/iam2bam/ane/nativejoystick/intern/NativeJoystickState" mod="1476566184033" signatureChecksum="917871794" >
+        <def id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickState" /> 
+        <dep id="com.iam2bam.ane.nativejoystick.intern:NativeJoystickCaps" type="s" /> 
+        <dep id="com.iam2bam.ane.nativejoystick:NativeJoystick" type="e" /> 
+        <dep id="Object" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <digests>
+        <digest type="SHA-256" signed="false" value="e70440305820c3831f317cd6f01c96d7b345e7ef4442a8bcd17e2fae8ec9cfd8"   />
+      </digests>
+    </library>
+  </libraries>
+  <files>
+  </files>
 </swc>
